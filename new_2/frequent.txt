@@ -1,0 +1,58 @@
+﻿Table type
+SOLI_TAB
+SOLIX_TAB
+TRG_DATE
+TRG_CHAR4
+WRF_MAKTX_RTTY
+WDY_KEY_VALUE_LIST  Standard list of key/value relationships as strings
+WDFR_MATKL_RANG_TYP Material group range
+
+Structure
+TAB512
+
+Data element
+CDATE	DATS	8	0	Yaratma tarihi
+CTIME	CHAR	6	0	Bitiş saati
+OBZAE	NUMC	4		Sayaç anahtarı
+AUFUSER7	DATS	8	0	İş başlangıcı
+AUFUSER8	DATS	8	0	İş bitiş tarihi
+BKK_LIGHTCODE	CHAR	1	0	ALV'de ışık ikonu durumu
+GEOLON
+GEOLAT
+FC_NAME CHAR    30 Ad
+
+Message
+00055	Tüm zorunlu alanları doldurun
+SV004	Seçime uygun bir giriş bulunamadı
+SV171   Internal error
+00398   & & & &
+SV018   Veriler saklandı 
+SV043   Veriler saklanmıştı 
+DB000   & & & & 
+SV026   İşlevi yürütmeden önce girişleri seç 
+DB650   Alt sınır üst sınırdan büyük 
+00382   Toplu giriş işlemesi sona erdi 
+00517   İş tamamlandı 
+FES016  Dosyanın yazılması sırasında hata. 
+0K004   İmleci listedeki bir satıra konumlayın 
+0K006   Asgari bir giriş seçiniz 
+0K007   Son değer ilk değerden küçük 
+BT676   İstisna ortaya çıktı (function = &1; sy-subrc = &2) 
+NR401   İşlem yürütülemez 
+01246   Sistem izin verseydi blokajlar kaldırılırdı 
+FL060   Saved 
+
+
+
+Table
+E070-E071	Transport request content
+TVARV       Table of variables in selection criteria
+
+Program
+RSSYSCOMP	Batch version comparison
+
+TCODE
+DWDM
+
+FM
+POPUP_CONTINUE_YES_NO

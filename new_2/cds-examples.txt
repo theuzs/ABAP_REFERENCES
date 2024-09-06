@@ -1,0 +1,1200 @@
+@AbapCatalog.sqlViewName: 'ZOAA_RSICALCFLAT'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'ZOAA_RSICALC01 tablosu R/Y/G yatay'
+define view ZOAA_RSICALC01_FLAT as 
+select from zoaa_rsicalc01 as z
+left outer join dd07t on dd07t.domname = 'ZOAA_D_LEVELCODE'
+                     and dd07t.ddlanguage = $session.system_language
+                     and dd07t.as4local = 'A'
+                     and dd07t.domvalue_l = z.levelcode
+left outer join /oaa/c_chan as c on c.channelid = z.channel {
+z.channel,
+c.description as channel_descr,
+z.levelcode,
+dd07t.ddtext as leveltext,
+z.ext_node_id,
+z.safestock,
+max( case z.rough_stock_value when 'R' then z.quantity_low end ) as R_QUANTITY_LOW,
+max( case z.rough_stock_value when 'R' then z.quantity_high end ) as R_QUANTITY_HIGH,
+max( case z.rough_stock_value when 'Y' then z.quantity_low end ) as Y_QUANTITY_LOW,
+max( case z.rough_stock_value when 'Y' then z.quantity_high end ) as Y_QUANTITY_HIGH,
+max( case z.rough_stock_value when 'G' then z.quantity_low end ) as G_QUANTITY_LOW,
+max( case z.rough_stock_value when 'G' then z.quantity_high end ) as G_QUANTITY_HIGH
+}
+group by z.channel, c.description, z.levelcode, dd07t.ddtext, z.ext_node_id, z.safestock
+
+****************************************************************************************
+
+@AbapCatalog.sqlViewName: 'ZPOSAE_VPRDSATNR'
+@AbapCatalog.compiler.compareFilter: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Prod Satnr'
+define view zposae_v_prodsatnr as select from zposae_prodsatnr ( p_client:$session.client ) as a {
+   key a.matnr,
+    a.satnr,
+    a.color,
+    a.maktx,
+    a.spras,
+    case when a.spras = $session.system_language then '1' when a.spras = 'E' then '2' when a.spras = 'T' then '3' else '4' end as lang_order
+} 
+
+****************************************************************************************
+
+@AbapCatalog.sqlViewName: 'ZPAVOMC_PAYMENT'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Pos Payment OData'
+@Analytics.dataCategory: #CUBE
+@OData.publish: true
+@VDM.viewType : #COMPOSITE
+
+define view ZPAOMC_PAYMENT as select from ZPACMC_SALESPAYMENT {
+    @Consumption: { filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false }}
+    @UI: {
+      lineItem: [ { position: 10, label: 'Location'  } ],
+      selectionField: [ { position: 10 }  ],
+      identification:[ { position: 30, label: 'Location'  } ] }
+      @EndUserText.label: 'Location'
+    key location,
+    @Consumption: { filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false }}
+    @UI: {
+      lineItem: [ { position: 10, label: 'Businessday Date'  } ],
+      selectionField: [ { position: 10 }  ],
+      identification:[ { position: 30, label: 'Businessday Date'  } ] }
+      @EndUserText.label: 'Businessday Date'
+    key documentdate,
+    @Consumption: { filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false }}
+    @UI: {
+      lineItem: [ { position: 10, label: 'Billing Document'  } ],
+      selectionField: [ { position: 10 }  ],
+      identification:[ { position: 30, label: 'Billing Document'  } ] }
+      @EndUserText.label: 'Billing Document'
+    key billingdocument,
+    @Consumption: { filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false }}
+    @UI: {
+      lineItem: [ { position: 10, label: 'Transaction Number'  } ],
+      selectionField: [ { position: 10 }  ],
+      identification:[ { position: 30, label: 'Transaction Number'  } ] }
+      @EndUserText.label: 'Transaction Number'
+    key TRANsactionnumber,
+    @Consumption: { filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false }}
+    @UI: {
+      lineItem: [ { position: 10, label: 'Sales Document'  } ],
+      selectionField: [ { position: 10 }  ],
+      identification:[ { position: 30, label: 'Sales Document'  } ] }
+      @EndUserText.label: 'Sales Document'
+    key salesdocument,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Tender Number'  } ],
+      identification:[ { position: 30, label: 'Tender Number'  } ] }
+      @EndUserText.label: 'Tender Number'
+    key tendernumber,
+    @Consumption: { filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false }}
+    @UI: {
+      lineItem: [ { position: 10, label: 'Sales Order Type' } ],
+      selectionField: [ { position: 10 }  ],
+      identification:[ { position: 30, label: 'Sales Order Type'  } ] }
+      @EndUserText.label: 'Sales Order Type'
+    salesordertype,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Location Name'  } ],
+      identification:[ { position: 30, label: 'Location Name' } ] }
+      @EndUserText.label: 'Location Name'
+    locationname,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Selling Store'  } ],
+      identification:[ { position: 30, label: 'Selling Store'  } ] }
+      @EndUserText.label: 'Selling Store'
+    sellingstore,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Selling Store Name' } ],
+      identification:[ { position: 30, label: 'Selling Store Name' } ] }
+      @EndUserText.label: 'Selling Store Name'
+    sellingstorename,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Customer Number'  } ],
+      identification:[ { position: 30, label: 'Customer Number'  } ] }
+      @EndUserText.label: 'Customer Number'
+    customernumber,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Customer Name' } ],
+      identification:[ { position: 30, label: 'Customer Name'  } ] }
+      @EndUserText.label: 'Customer Name'
+    customername,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Customer Surname' } ],
+      identification:[ { position: 30, label: 'Customer Surname'  } ] }
+      @EndUserText.label: 'Customer Surname'
+    customersurname,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Customer Phone' } ],
+      identification:[ { position: 30, label: 'Customer Phone'  } ] }
+      @EndUserText.label: 'Customer Phone'
+    customerphone,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Customer Address' } ],
+      identification:[ { position: 30, label: 'Customer Address'  } ] }
+      @EndUserText.label: 'Customer Address'
+    customeraddress,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Bill To Party' } ],
+      identification:[ { position: 30, label: 'Bill To Party'  } ] }
+      @EndUserText.label: 'Bill To Party'
+    billtoparty,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Bill To Party Name' } ],
+      identification:[ { position: 30, label: 'Bill To Party Name'  } ] }
+      @EndUserText.label: 'Bill To Party Name'
+    billtopartyname,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Ship To Party' } ],
+      identification:[ { position: 30, label: 'Ship To Party'  } ] }
+      @EndUserText.label: 'Ship To Party'
+    shiptoparty,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Ship To Party Name' } ],
+      identification:[ { position: 30, label: 'Ship To Party Name'  } ] }
+      @EndUserText.label: 'Ship To Party Name'
+    shiptopartyname,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Due Date' } ],
+      identification:[ { position: 30, label: 'Due Date'  } ] }
+      @EndUserText.label: 'Due Date'
+    duedate,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Bank Code' } ],
+      identification:[ { position: 30, label: 'Bank Code' } ] }
+      @EndUserText.label: 'Bank Code'
+    bankcode,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Bank Name' } ],
+      identification:[ { position: 30, label: 'Bank Name' } ] }
+      @EndUserText.label: 'Bank Name'
+    bankname,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Workstation ID' } ],
+      identification:[ { position: 30, label: 'Workstation ID' } ] }
+      @EndUserText.label: 'Workstation ID'
+    workstationid,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Operator ID' } ],
+      identification:[ { position: 30, label: 'Operator ID' } ] }
+      @EndUserText.label: 'Operator ID'
+    operatorid,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Tender ID' } ],
+      identification:[ { position: 30, label: 'Tender ID' } ] }
+      @EndUserText.label: 'Tender ID'
+    tenderid,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Control Count' } ],
+      identification:[ { position: 30, label: 'Control Count' } ] }
+      @EndUserText.label: 'Control Count'
+    controlcount,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Account' } ],
+      identification:[ { position: 30, label: 'Account' } ] }
+      @EndUserText.label: 'Account'
+    account,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Tender Type Code' } ],
+      identification:[ { position: 30, label: 'Tender Type Code' } ] }
+      @EndUserText.label: 'Tender Type Code'
+    tendertypecode,
+    @Semantics.amount.currencyCode: 'TenderCurrency'
+    @DefaultAggregation: #SUM
+    @UI: {
+      lineItem: [ { position: 10, label: 'Payment Amount' } ],
+      identification:[ { position: 30, label: 'Payment Amount' } ] }
+      @EndUserText.label: 'Payment Amount'
+    tenderamount,
+    @Semantics.currencyCode: true
+    @Consumption: { filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false }}
+    @UI: {
+      lineItem: [ { position: 10, label: 'Tender Currency'  } ],
+      selectionField: [ { position: 10 }  ],
+      identification:[ { position: 30, label: 'Tender Currency'  } ] }
+      @EndUserText.label: 'Tender Currency'
+    tendercurrency,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Gift Card' } ],
+      identification:[ { position: 30, label: 'Gift Card' } ] }
+      @EndUserText.label: 'Gift Card'
+    giftcard,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Credit Check' } ],
+      identification:[ { position: 30, label: 'Credit Check' } ] }
+      @EndUserText.label: 'Credit Check'
+    creditcheck,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Cash' } ],
+      identification:[ { position: 30, label: 'Cash' } ] }
+      @EndUserText.label: 'Cash'
+    cash,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Change' } ],
+      identification:[ { position: 30, label: 'Change' } ] }
+      @EndUserText.label: 'Change'
+    change,
+    @UI: {
+      lineItem: [ { position: 10, label: 'Payment Descripton' } ],
+      identification:[ { position: 30, label: 'Payment Descripton' } ] }
+      @EndUserText.label: 'Payment Descripton'
+    paymentdesc
+}
+
+******************************************************************************
+
+@AbapCatalog.sqlViewName: 'ZOAA_RSIFULL'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'RSI combinations with maintained limits'
+@Analytics.dataCategory: #CUBE
+@OData.publish: true
+@VDM.viewType : #COMPOSITE
+@Search.searchable: true
+define view ZOAA_RSI as 
+select from zoaav_articles as a
+cross join /oaa/channels as chn
+left outer join ZOAA_RSICALC01_FLAT as z on z.Channel   = chn.channelid
+                                        and z.Levelcode = '01'
+                                        and z.Article   = a.article
+                                        and z.sizevalue = a.sizevalue
+left outer join dd07t as lt  on lt.domname = 'ZOAA_LEVELCODE'
+                            and lt.ddlanguage = $session.system_language
+                            and lt.as4local = 'A'
+                            and lt.domvalue_l = '01'
+association [0..1] to /oaa/C_Channel as _channelhelp  on _channelhelp.channelid = $projection.Channel  
+association [0..1] to ZOAA_LEVELCODE_VH as _levelhelp  on _levelhelp.Low = $projection.Levelcode
+association [0..1] to ZOAAC_H_ARTICLES as _articlehelp  on _articlehelp.article   =  $projection.Article
+association [0..1] to ZOAAC_H_CATEGORY as _categoryhelp  on _categoryhelp.category = $projection.Category {
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 10, qualifier:'Channel', importance: 'MEDIUM', label: 'Channel' } ],
+     selectionField: [ { position: 10 } ],
+     identification: [ { position: 10, label: 'Channel'  } ]  }
+     @EndUserText.label: 'Channel'    
+     @Consumption.valueHelp: '_channelhelp' 
+    key chn.channelid as Channel,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 30, label: 'Level' } ],
+     selectionField: [ { position: 30 } ],
+     identification: [ { position: 30, label: 'Level'  } ]  }
+     @EndUserText.label: 'Level'    
+     @Consumption.valueHelp: '_levelhelp' 
+    key '01' as Levelcode,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 50, label: 'Category' } ],
+     selectionField: [ { position: 50 } ],
+     identification: [ { position: 50, label: 'Category'  } ]  }
+     @EndUserText.label: 'Category'    
+     @Consumption.valueHelp: '_categoryhelp'
+    key cast ( '' as char30 ) as Category,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 60, label: 'Article' } ],
+     selectionField: [ { position: 60 } ],
+     identification: [ { position: 60, label: 'Article'  } ]  }
+     @EndUserText.label: 'Article'    
+     @Consumption.valueHelp: '_articlehelp' 
+    key a.article as Article,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 70, label: 'Size' } ],
+     selectionField: [ { position: 70 } ],
+     identification: [ { position: 70, label: 'Size'  } ]  }
+     @EndUserText.label: 'Size' 
+    key a.sizevalue,
+  @UI: { 
+     lineItem: [ { position: 20, importance: 'MEDIUM', label: 'ChannelDescr' } ],
+     selectionField: [ { position: 20 } ],
+     identification: [ { position: 20, label: 'ChannelDescr'  } ]  }
+     @EndUserText.label: 'Channel Description' 
+_channelhelp.Description as channel_descr,
+  @UI: { 
+     lineItem: [ { position: 40, label: 'LevelText' } ],
+     selectionField: [ { position: 40 } ],
+     identification: [ { position: 40, label: 'LevelText'  } ]  }
+     @EndUserText.label: 'Level Text'
+lt.ddtext as leveltext,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 80, label: 'NodeName' } ],
+     selectionField: [ { position: 80 } ],
+     identification: [ { position: 80, label: 'NodeName'  } ]  }
+     @EndUserText.label: 'Node Name'    
+a.description as NodeName,
+  @UI: { 
+     lineItem: [ { position: 90, label: 'QuanLowOut' } ],
+     selectionField: [ { position: 90 } ],
+     identification: [ { position: 90, label: 'QuanLowOut'  } ]  }
+     @EndUserText.label: 'Quantity Low Out'  
+z.QUANTITY_LOW_OUT,
+  @UI: { 
+     lineItem: [ { position: 100, label: 'QuanHighOut' } ],
+     selectionField: [ { position: 100 } ],
+     identification: [ { position: 100, label: 'QuanHighOut'  } ]  }
+     @EndUserText.label: 'Quantity High Out'  
+z.QUANTITY_HIGH_OUT,
+  @UI: { 
+     lineItem: [ { position: 110, label: 'QuanLowLim' } ],
+     selectionField: [ { position: 110 } ],
+     identification: [ { position: 110, label: 'QuanLowLim'  } ]  }
+     @EndUserText.label: 'Quantity Low Lim'  
+z.QUANTITY_LOW_LIM,
+  @UI: { 
+     lineItem: [ { position: 120, label: 'QuanHighLim' } ],
+     selectionField: [ { position: 120 } ],
+     identification: [ { position: 120, label: 'QuanHighLim'  } ]  }
+     @EndUserText.label: 'Quantity High Lim'  
+z.QUANTITY_HIGH_LIM,
+  @UI: { 
+     lineItem: [ { position: 130, label: 'QuanLowOn' } ],
+     selectionField: [ { position: 130 } ],
+     identification: [ { position: 130, label: 'QuanLowOn'  } ]  }
+     @EndUserText.label: 'Quantity Low On'  
+z.QUANTITY_LOW_ON,
+  @UI: { 
+     lineItem: [ { position: 140, label: 'QuanHighOn' } ],
+     selectionField: [ { position: 140 } ],
+     identification: [ { position: 140, label: 'QuanHighOn'  } ]  }
+     @EndUserText.label: 'Quantity High On'  
+z.QUANTITY_HIGH_ON,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 150, label: 'Active' } ],
+     selectionField: [ { position: 150 } ],
+     identification: [ { position: 150, label: 'Active'  } ]  }
+     @EndUserText.label: 'Active'    
+cast ( ( case when z.createdby is null then '' else 'X' end ) as boole_d ) as Active,
+  @UI: { 
+     lineItem: [ { position: 160, label: 'CreatedBy' } ],
+     identification: [ { position: 160, label: 'CreatedBy'  } ]  }
+     @EndUserText.label: 'Created By'    
+z.createdby,
+  @UI: { 
+     lineItem: [ { position: 170, label: 'CreatedDate' } ],
+     identification: [ { position: 170, label: 'CreatedDate'  } ]  }
+     @EndUserText.label: 'Create Date'    
+z.createdate,
+  @UI: { 
+     lineItem: [ { position: 180, label: 'CreatedTime' } ],
+     identification: [ { position: 180, label: 'CreatedTime'  } ]  }
+     @EndUserText.label: 'Create Time'    
+z.createtime,
+@Search.defaultSearchElement: true
+_channelhelp,
+@Search.defaultSearchElement: true
+_levelhelp,
+@Search.defaultSearchElement: true
+_articlehelp,
+@Search.defaultSearchElement: true
+_categoryhelp
+} union 
+select from zoaav_category as c
+cross join /oaa/channels as chn
+left outer join ZOAA_RSICALC01_FLAT as z on z.Channel   = chn.channelid
+                                        and z.Levelcode = '02'
+                                        and z.Category  = c.category
+left outer join dd07t as lt  on lt.domname = 'ZOAA_LEVELCODE'
+                            and lt.ddlanguage = $session.system_language
+                            and lt.as4local = 'A'
+                            and lt.domvalue_l = '02'
+association [0..1] to /oaa/C_Channel as _channelhelp  on _channelhelp.channelid = $projection.Channel  
+association [0..1] to ZOAA_LEVELCODE_VH as _levelhelp  on _levelhelp.Low = $projection.Levelcode
+association [0..1] to ZOAAC_H_ARTICLES as _articlehelp  on _articlehelp.article   =  $projection.Article
+association [0..1] to ZOAAC_H_CATEGORY as _categoryhelp  on _categoryhelp.category = $projection.Category {
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 10, qualifier:'Channel', importance: 'MEDIUM', label: 'Channel' } ],
+     selectionField: [ { position: 10 } ],
+     identification: [ { position: 10, label: 'Channel'  } ]  }
+     @EndUserText.label: 'Channel'    
+     @Consumption.valueHelp: '_channelhelp' 
+    key chn.channelid as Channel,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 30, label: 'Level' } ],
+     selectionField: [ { position: 30 } ],
+     identification: [ { position: 30, label: 'Level'  } ]  }
+     @EndUserText.label: 'Level'    
+     @Consumption.valueHelp: '_levelhelp' 
+    key '02' as Levelcode,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 50, label: 'Category' } ],
+     selectionField: [ { position: 50 } ],
+     identification: [ { position: 50, label: 'Category'  } ]  }
+     @EndUserText.label: 'Category'    
+     @Consumption.valueHelp: '_categoryhelp'
+    key c.category as Category,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 60, label: 'Article' } ],
+     selectionField: [ { position: 60 } ],
+     identification: [ { position: 60, label: 'Article'  } ]  }
+     @EndUserText.label: 'Article'    
+     @Consumption.valueHelp: '_articlehelp' 
+    key '' as Article,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 70, label: 'Size' } ],
+     selectionField: [ { position: 70 } ],
+     identification: [ { position: 70, label: 'Size'  } ]  }
+     @EndUserText.label: 'Size' 
+    key '' as sizevalue,
+  @UI: { 
+     lineItem: [ { position: 20, importance: 'MEDIUM', label: 'ChannelDescr' } ],
+     selectionField: [ { position: 20 } ],
+     identification: [ { position: 20, label: 'ChannelDescr'  } ]  }
+     @EndUserText.label: 'Channel Description' 
+_channelhelp.Description as channel_descr,
+  @UI: { 
+     lineItem: [ { position: 40, label: 'LevelText' } ],
+     selectionField: [ { position: 40 } ],
+     identification: [ { position: 40, label: 'LevelText'  } ]  }
+     @EndUserText.label: 'Level Text'
+lt.ddtext as leveltext,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 80, label: 'NodeName' } ],
+     selectionField: [ { position: 80 } ],
+     identification: [ { position: 80, label: 'NodeName'  } ]  }
+     @EndUserText.label: 'Node Name'    
+c.categoryname as NodeName,
+  @UI: { 
+     lineItem: [ { position: 90, label: 'QuanLowOut' } ],
+     selectionField: [ { position: 90 } ],
+     identification: [ { position: 90, label: 'QuanLowOut'  } ]  }
+     @EndUserText.label: 'Quantity Low Out'  
+z.QUANTITY_LOW_OUT,
+  @UI: { 
+     lineItem: [ { position: 100, label: 'QuanHighOut' } ],
+     selectionField: [ { position: 100 } ],
+     identification: [ { position: 100, label: 'QuanHighOut'  } ]  }
+     @EndUserText.label: 'Quantity High Out'  
+z.QUANTITY_HIGH_OUT,
+  @UI: { 
+     lineItem: [ { position: 110, label: 'QuanLowLim' } ],
+     selectionField: [ { position: 110 } ],
+     identification: [ { position: 110, label: 'QuanLowLim'  } ]  }
+     @EndUserText.label: 'Quantity Low Lim'  
+z.QUANTITY_LOW_LIM,
+  @UI: { 
+     lineItem: [ { position: 120, label: 'QuanHighLim' } ],
+     selectionField: [ { position: 120 } ],
+     identification: [ { position: 120, label: 'QuanHighLim'  } ]  }
+     @EndUserText.label: 'Quantity High Lim'  
+z.QUANTITY_HIGH_LIM,
+  @UI: { 
+     lineItem: [ { position: 130, label: 'QuanLowOn' } ],
+     selectionField: [ { position: 130 } ],
+     identification: [ { position: 130, label: 'QuanLowOn'  } ]  }
+     @EndUserText.label: 'Quantity Low On'  
+z.QUANTITY_LOW_ON,
+  @UI: { 
+     lineItem: [ { position: 140, label: 'QuanHighOn' } ],
+     selectionField: [ { position: 140 } ],
+     identification: [ { position: 140, label: 'QuanHighOn'  } ]  }
+     @EndUserText.label: 'Quantity High On'  
+z.QUANTITY_HIGH_ON,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 150, label: 'Active' } ],
+     selectionField: [ { position: 150 } ],
+     identification: [ { position: 150, label: 'Active'  } ]  }
+     @EndUserText.label: 'Active'    
+cast ( ( case when z.createdby is null then '' else 'X' end ) as boole_d ) as Active,
+  @UI: { 
+     lineItem: [ { position: 160, label: 'CreatedBy' } ],
+     identification: [ { position: 160, label: 'CreatedBy'  } ]  }
+     @EndUserText.label: 'Created By'    
+z.createdby,
+  @UI: { 
+     lineItem: [ { position: 170, label: 'CreatedDate' } ],
+     identification: [ { position: 170, label: 'CreatedDate'  } ]  }
+     @EndUserText.label: 'Create Date'    
+z.createdate,
+  @UI: { 
+     lineItem: [ { position: 180, label: 'CreatedTime' } ],
+     identification: [ { position: 180, label: 'CreatedTime'  } ]  }
+     @EndUserText.label: 'Create Time'    
+z.createtime,
+@Search.defaultSearchElement: true
+_channelhelp,
+@Search.defaultSearchElement: true
+_levelhelp,
+@Search.defaultSearchElement: true
+_articlehelp,
+@Search.defaultSearchElement: true
+_categoryhelp
+} 
+
+*********************************************************************************
+
+@AbapCatalog.sqlViewName: 'ZOAA_RSICALCFLAT'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'RSI calc horizontal stock'
+@Analytics.dataCategory: #CUBE
+@OData.publish: true
+@VDM.viewType : #COMPOSITE
+@Search.searchable: true
+define view ZOAA_RSICALC01_FLAT as 
+select from zoaa_rsicalcd as z
+association [0..1] to /oaa/c_chan as _channelhelp  on _channelhelp.channelid = $projection.Channel  
+association [0..1] to dd07t as _levelhelp  on _levelhelp.domname = 'ZOAA_LEVELCODE'
+                                          and _levelhelp.ddlanguage = $session.system_language
+                                          and _levelhelp.as4local = 'A'
+                                          and _levelhelp.domvalue_l = $projection.Levelcode
+association [0..1] to ZOAAC_H_ARTICLES as _articlehelp  on _articlehelp.article   = z.articleid
+association [0..1] to ZOAAC_H_CATEGORY as _categoryhelp  on _categoryhelp.category = $projection.Category {
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 10, label: 'Channel' } ],
+     selectionField: [ { position: 10 } ],
+     identification: [ { position: 10, label: 'Channel'  } ]  }
+     @EndUserText.label: 'Channel'    
+     @Consumption.valueHelp: '_channelhelp' 
+key z.channel as Channel,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 20, label: 'Level' } ],
+     selectionField: [ { position: 20 } ],
+     identification: [ { position: 20, label: 'Level'  } ]  }
+     @EndUserText.label: 'Level'    
+     @Consumption.valueHelp: '_levelhelp' 
+key z.levelcode as Levelcode,
+  @UI: { 
+     lineItem: [ { position: 30, label: 'Node' } ],
+     selectionField: [ { position: 30 } ],
+     identification: [ { position: 30, label: 'Node'  } ]  }
+     @EndUserText.label: 'Node'    
+key case when z.articleid = ' ' then z.category else z.articleid end as node_id,
+  @UI: { 
+     lineItem: [ { position: 40, label: 'Size' } ],
+     selectionField: [ { position: 40 } ],
+     identification: [ { position: 40, label: 'Size'  } ]  }
+     @EndUserText.label: 'Size' 
+key z.sizevalue,
+  @UI: { 
+     lineItem: [ { position: 50, label: 'ChannelDescr' } ],
+     selectionField: [ { position: 50 } ],
+     identification: [ { position: 50, label: 'ChannelDescr'  } ]  }
+     @EndUserText.label: 'Channel Description' 
+_channelhelp.description as channel_descr,
+  @UI: { 
+     lineItem: [ { position: 60, label: 'LevelText' } ],
+     selectionField: [ { position: 60 } ],
+     identification: [ { position: 60, label: 'LevelText'  } ]  }
+     @EndUserText.label: 'Level Text'
+_levelhelp.ddtext as leveltext,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 70, label: 'Category' } ],
+     selectionField: [ { position: 70 } ],
+     identification: [ { position: 70, label: 'Category'  } ]  }
+     @EndUserText.label: 'Category'    
+     @Consumption.valueHelp: '_categoryhelp' 
+z.category as Category,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 80, label: 'Article' } ],
+     selectionField: [ { position: 80 } ],
+     identification: [ { position: 80, label: 'Article'  } ]  }
+     @EndUserText.label: 'Article'    
+     @Consumption.valueHelp: '_articlehelp' 
+z.articleid as Article,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 90, label: 'NodeName' } ],
+     selectionField: [ { position: 90 } ],
+     identification: [ { position: 90, label: 'NodeName'  } ]  }
+     @EndUserText.label: 'Node Name'    
+coalesce( _articlehelp.description, _categoryhelp.categoryname) as NodeName,
+  @UI: { 
+     lineItem: [ { position: 100, label: 'QuanLowOut' } ],
+     selectionField: [ { position: 100 } ],
+     identification: [ { position: 100, label: 'QuanLowOut'  } ]  }
+     @EndUserText.label: 'Quantity Low Out'  
+max( case z.rough_stock_value when 'out_of_stock' then z.quantity_low end ) as QUANTITY_LOW_OUT,
+  @UI: { 
+     lineItem: [ { position: 110, label: 'QuanHighOut' } ],
+     selectionField: [ { position: 110 } ],
+     identification: [ { position: 110, label: 'QuanHighOut'  } ]  }
+     @EndUserText.label: 'Quantity High Out'  
+max( case z.rough_stock_value when 'out_of_stock' then z.quantity_high end ) as QUANTITY_HIGH_OUT,
+  @UI: { 
+     lineItem: [ { position: 120, label: 'QuanLowLim' } ],
+     selectionField: [ { position: 120 } ],
+     identification: [ { position: 120, label: 'QuanLowLim'  } ]  }
+     @EndUserText.label: 'Quantity Low Lim'  
+max( case z.rough_stock_value when 'limited' then z.quantity_low end ) as QUANTITY_LOW_LIM,
+  @UI: { 
+     lineItem: [ { position: 130, label: 'QuanHighLim' } ],
+     selectionField: [ { position: 130 } ],
+     identification: [ { position: 130, label: 'QuanHighLim'  } ]  }
+     @EndUserText.label: 'Quantity High Lim'  
+max( case z.rough_stock_value when 'limited' then z.quantity_high end ) as QUANTITY_HIGH_LIM,
+  @UI: { 
+     lineItem: [ { position: 140, label: 'QuanLowOn' } ],
+     selectionField: [ { position: 140 } ],
+     identification: [ { position: 140, label: 'QuanLowOn'  } ]  }
+     @EndUserText.label: 'Quantity Low On'  
+max( case z.rough_stock_value when 'on_stock' then z.quantity_low end ) as QUANTITY_LOW_ON,
+  @UI: { 
+     lineItem: [ { position: 150, label: 'QuanHighOn' } ],
+     selectionField: [ { position: 150 } ],
+     identification: [ { position: 150, label: 'QuanHighOn'  } ]  }
+     @EndUserText.label: 'Quantity High On'  
+max( case z.rough_stock_value when 'on_stock' then z.quantity_high end ) as QUANTITY_HIGH_ON,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 160, label: 'Active' } ],
+     selectionField: [ { position: 160 } ],
+     identification: [ { position: 160, label: 'Active'  } ]  }
+     @EndUserText.label: 'Active'    
+cast ( 'X' as boole_d ) as Active,
+  @UI: { 
+     lineItem: [ { position: 170, label: 'CreatedBy' } ],
+     identification: [ { position: 170, label: 'CreatedBy'  } ]  }
+     @EndUserText.label: 'Created By'    
+z.createdby,
+  @UI: { 
+     lineItem: [ { position: 180, label: 'CreatedDate' } ],
+     identification: [ { position: 180, label: 'CreatedDate'  } ]  }
+     @EndUserText.label: 'Create Date'    
+z.createdate,
+  @UI: { 
+     lineItem: [ { position: 190, label: 'CreatedTime' } ],
+     identification: [ { position: 190, label: 'CreatedTime'  } ]  }
+     @EndUserText.label: 'Create Time'    
+z.createtime,
+//@Consumption.hidden: true
+@Search.defaultSearchElement: true
+_channelhelp,
+@Search.defaultSearchElement: true
+_levelhelp,
+@Search.defaultSearchElement: true
+_articlehelp,
+@Search.defaultSearchElement: true
+_categoryhelp
+}
+group by z.channel, _channelhelp.description, z.levelcode, _levelhelp.ddtext, z.articleid, z.sizevalue, z.category, _articlehelp.description, _categoryhelp.categoryname, z.createdby, z.createdate, z.createtime
+
+************************************************************************************
+
+@AbapCatalog.sqlViewName: 'ZOAA_SFSTCKFULL'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'All possible safe stock combinations'
+@Analytics.dataCategory: #CUBE
+@OData.publish: true
+@VDM.viewType : #COMPOSITE
+@Search.searchable: true
+define view ZOAA_SFSTCK as select from zoaav_articles as a
+cross join /oaa/channels as chn
+left outer join zoaa_safestockd as z on z.channel   = chn.channelid
+                                    and z.levelcode = '01'
+                                    and z.articleid = a.article
+                                    and z.sizevalue = a.sizevalue
+left outer join dd07t as lt  on lt.domname = 'ZOAA_LEVELCODE'
+                            and lt.ddlanguage = $session.system_language
+                            and lt.as4local = 'A'
+                            and lt.domvalue_l = '01'
+association [0..1] to /oaa/C_Channel as _channelhelp  on _channelhelp.channelid = $projection.Channel  
+association [0..1] to ZOAA_LEVELCODE_VH as _levelhelp  on _levelhelp.Low = $projection.Levelcode
+association [0..1] to ZOAAC_H_ARTICLES as _articlehelp  on _articlehelp.article   =  $projection.Article
+association [0..1] to ZOAAC_H_CATEGORY as _categoryhelp  on _categoryhelp.category = $projection.Category {
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 10, qualifier:'Channel', importance: 'MEDIUM', label: 'Channel' } ],
+     selectionField: [ { position: 10 } ],
+     identification: [ { position: 10, label: 'Channel'  } ]  }
+     @EndUserText.label: 'Channel'    
+     @Consumption.valueHelp: '_channelhelp' 
+    key chn.channelid as Channel,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 30, label: 'Level' } ],
+     selectionField: [ { position: 30 } ],
+     identification: [ { position: 30, label: 'Level'  } ]  }
+     @EndUserText.label: 'Level'    
+     @Consumption.valueHelp: '_levelhelp' 
+    key '01' as Levelcode,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 50, label: 'Category' } ],
+     selectionField: [ { position: 50 } ],
+     identification: [ { position: 50, label: 'Category'  } ]  }
+     @EndUserText.label: 'Category'    
+     @Consumption.valueHelp: '_categoryhelp'
+    key cast ( '' as char30 ) as Category,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 60, label: 'Article' } ],
+     selectionField: [ { position: 60 } ],
+     identification: [ { position: 60, label: 'Article'  } ]  }
+     @EndUserText.label: 'Article'    
+     @Consumption.valueHelp: '_articlehelp' 
+    key a.article as Article,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 70, label: 'Size' } ],
+     selectionField: [ { position: 70 } ],
+     identification: [ { position: 70, label: 'Size'  } ]  }
+     @EndUserText.label: 'Size' 
+    key a.sizevalue,
+  @UI: { 
+     lineItem: [ { position: 20, importance: 'MEDIUM', label: 'ChannelDescr' } ],
+     selectionField: [ { position: 20 } ],
+     identification: [ { position: 20, label: 'ChannelDescr'  } ]  }
+     @EndUserText.label: 'Channel Description' 
+_channelhelp.Description as channel_descr,
+  @UI: { 
+     lineItem: [ { position: 40, label: 'LevelText' } ],
+     selectionField: [ { position: 40 } ],
+     identification: [ { position: 40, label: 'LevelText'  } ]  }
+     @EndUserText.label: 'Level Text'
+lt.ddtext as leveltext,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 80, label: 'NodeName' } ],
+     selectionField: [ { position: 80 } ],
+     identification: [ { position: 80, label: 'NodeName'  } ]  }
+     @EndUserText.label: 'Node Name'    
+a.description as NodeName,
+  @UI: { 
+     lineItem: [ { position: 90, label: 'SafeStock' } ],
+     selectionField: [ { position: 90 } ],
+     identification: [ { position: 90, label: 'SafeStock'  } ]  }
+     @EndUserText.label: 'Safe Stock'  
+z.safestock,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 100, label: 'Active' } ],
+     selectionField: [ { position: 100 } ],
+     identification: [ { position: 100, label: 'Active'  } ]  }
+     @EndUserText.label: 'Active'    
+cast ( ( case when z.createdby is null then '' else 'X' end ) as boole_d ) as Active,
+  @UI: { 
+     lineItem: [ { position: 110, label: 'CreatedBy' } ],
+     identification: [ { position: 110, label: 'CreatedBy'  } ]  }
+     @EndUserText.label: 'Created By'    
+z.createdby,
+  @UI: { 
+     lineItem: [ { position: 120, label: 'CreatedDate' } ],
+     identification: [ { position: 120, label: 'CreatedDate'  } ]  }
+     @EndUserText.label: 'Create Date'    
+z.createdate,
+  @UI: { 
+     lineItem: [ { position: 130, label: 'CreatedTime' } ],
+     identification: [ { position: 130, label: 'CreatedTime'  } ]  }
+     @EndUserText.label: 'Create Time'    
+z.createtime,
+@Search.defaultSearchElement: true
+_channelhelp,
+@Search.defaultSearchElement: true
+_levelhelp,
+@Search.defaultSearchElement: true
+_articlehelp,
+@Search.defaultSearchElement: true
+_categoryhelp
+} union 
+select from zoaav_category as c
+cross join /oaa/channels as chn
+left outer join zoaa_safestockd as z on z.channel   = chn.channelid
+                                    and z.levelcode = '02'
+                                    and z.category  = c.category
+left outer join dd07t as lt  on lt.domname = 'ZOAA_LEVELCODE'
+                            and lt.ddlanguage = $session.system_language
+                            and lt.as4local = 'A'
+                            and lt.domvalue_l = '02'
+association [0..1] to /oaa/C_Channel as _channelhelp  on _channelhelp.channelid = $projection.Channel  
+association [0..1] to ZOAA_LEVELCODE_VH as _levelhelp  on _levelhelp.Low = $projection.Levelcode
+association [0..1] to ZOAAC_H_ARTICLES as _articlehelp  on _articlehelp.article   =  $projection.Article
+association [0..1] to ZOAAC_H_CATEGORY as _categoryhelp  on _categoryhelp.category = $projection.Category {
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 10, qualifier:'Channel', importance: 'MEDIUM', label: 'Channel' } ],
+     selectionField: [ { position: 10 } ],
+     identification: [ { position: 10, label: 'Channel'  } ]  }
+     @EndUserText.label: 'Channel'    
+     @Consumption.valueHelp: '_channelhelp' 
+    key chn.channelid as Channel,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 30, label: 'Level' } ],
+     selectionField: [ { position: 30 } ],
+     identification: [ { position: 30, label: 'Level'  } ]  }
+     @EndUserText.label: 'Level'    
+     @Consumption.valueHelp: '_levelhelp' 
+    key '02' as Levelcode,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 50, label: 'Category' } ],
+     selectionField: [ { position: 50 } ],
+     identification: [ { position: 50, label: 'Category'  } ]  }
+     @EndUserText.label: 'Category'    
+     @Consumption.valueHelp: '_categoryhelp'
+    key c.category as Category,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 60, label: 'Article' } ],
+     selectionField: [ { position: 60 } ],
+     identification: [ { position: 60, label: 'Article'  } ]  }
+     @EndUserText.label: 'Article'    
+     @Consumption.valueHelp: '_articlehelp' 
+    key '' as Article,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 70, label: 'Size' } ],
+     selectionField: [ { position: 70 } ],
+     identification: [ { position: 70, label: 'Size'  } ]  }
+     @EndUserText.label: 'Size' 
+    key '' as sizevalue,
+  @UI: { 
+     lineItem: [ { position: 20, importance: 'MEDIUM', label: 'ChannelDescr' } ],
+     selectionField: [ { position: 20 } ],
+     identification: [ { position: 20, label: 'ChannelDescr'  } ]  }
+     @EndUserText.label: 'Channel Description' 
+_channelhelp.Description as channel_descr,
+  @UI: { 
+     lineItem: [ { position: 40, label: 'LevelText' } ],
+     selectionField: [ { position: 40 } ],
+     identification: [ { position: 40, label: 'LevelText'  } ]  }
+     @EndUserText.label: 'Level Text'
+lt.ddtext as leveltext,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 80, label: 'NodeName' } ],
+     selectionField: [ { position: 80 } ],
+     identification: [ { position: 80, label: 'NodeName'  } ]  }
+     @EndUserText.label: 'Node Name'    
+c.categoryname as NodeName,
+  @UI: { 
+     lineItem: [ { position: 90, label: 'SafeStock' } ],
+     selectionField: [ { position: 90 } ],
+     identification: [ { position: 90, label: 'SafeStock'  } ]  }
+     @EndUserText.label: 'Safe Stock'  
+z.safestock,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 100, label: 'Active' } ],
+     selectionField: [ { position: 100 } ],
+     identification: [ { position: 100, label: 'Active'  } ]  }
+     @EndUserText.label: 'Active'    
+cast ( ( case when z.createdby is null then '' else 'X' end ) as boole_d ) as Active,
+  @UI: { 
+     lineItem: [ { position: 110, label: 'CreatedBy' } ],
+     identification: [ { position: 110, label: 'CreatedBy'  } ]  }
+     @EndUserText.label: 'Created By'    
+z.createdby,
+  @UI: { 
+     lineItem: [ { position: 120, label: 'CreatedDate' } ],
+     identification: [ { position: 120, label: 'CreatedDate'  } ]  }
+     @EndUserText.label: 'Create Date'    
+z.createdate,
+  @UI: { 
+     lineItem: [ { position: 130, label: 'CreatedTime' } ],
+     identification: [ { position: 130, label: 'CreatedTime'  } ]  }
+     @EndUserText.label: 'Create Time'    
+z.createtime,
+@Search.defaultSearchElement: true
+_channelhelp,
+@Search.defaultSearchElement: true
+_levelhelp,
+@Search.defaultSearchElement: true
+_articlehelp,
+@Search.defaultSearchElement: true
+_categoryhelp
+} 
+
+*******************************************************************************
+
+@AbapCatalog.sqlViewName: 'ZOAA_SRCSFSTCKF'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Safe Stock per Source'
+@Analytics.dataCategory: #CUBE
+@OData.publish: true
+@VDM.viewType : #COMPOSITE
+@Search.searchable: true
+define view ZOAA_SRCSFSTCK as select from zoaav_articles as a
+cross join /oaa/i_Sources_Union as src
+left outer join zoaa_safestockr as z on z.sourceid   = src.SourceId
+                                    and z.levelcode = '01'
+                                    and z.articleid = a.article
+                                    and z.sizevalue = a.sizevalue
+left outer join dd07t as lt  on lt.domname = 'ZOAA_LEVELCODE'
+                            and lt.ddlanguage = $session.system_language
+                            and lt.as4local = 'A'
+                            and lt.domvalue_l = '01'
+association [0..1] to /oaa/i_Sources_Union as _sourcehelp  on _sourcehelp.SourceId = $projection.Source  
+association [0..1] to ZOAA_LEVELCODE_VH as _levelhelp  on _levelhelp.Low = $projection.Levelcode
+association [0..1] to ZOAAC_H_ARTICLES as _articlehelp  on _articlehelp.article   =  $projection.Article
+association [0..1] to ZOAAC_H_CATEGORY as _categoryhelp  on _categoryhelp.category = $projection.Category {
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: true, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 10, qualifier:'Channel', importance: 'MEDIUM', label: 'Source' } ],
+     selectionField: [ { position: 10 } ],
+     identification: [ { position: 10, label: 'Source'  } ]  }
+     @EndUserText.label: 'Source'    
+     @Consumption.valueHelp: '_sourcehelp' 
+    key src.SourceId as Source,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 30, label: 'Level' } ],
+     selectionField: [ { position: 30 } ],
+     identification: [ { position: 30, label: 'Level'  } ]  }
+     @EndUserText.label: 'Level'    
+     @Consumption.valueHelp: '_levelhelp' 
+    key '01' as Levelcode,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 50, label: 'Category' } ],
+     selectionField: [ { position: 50 } ],
+     identification: [ { position: 50, label: 'Category'  } ]  }
+     @EndUserText.label: 'Category'    
+     @Consumption.valueHelp: '_categoryhelp'
+    key cast ( '' as char30 ) as Category,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 60, label: 'Article' } ],
+     selectionField: [ { position: 60 } ],
+     identification: [ { position: 60, label: 'Article'  } ]  }
+     @EndUserText.label: 'Article'    
+     @Consumption.valueHelp: '_articlehelp' 
+    key a.article as Article,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 70, label: 'Size' } ],
+     selectionField: [ { position: 70 } ],
+     identification: [ { position: 70, label: 'Size'  } ]  }
+     @EndUserText.label: 'Size' 
+    key a.sizevalue,
+  @UI: { 
+     lineItem: [ { position: 20, importance: 'MEDIUM', label: 'SourceName' } ],
+     selectionField: [ { position: 20 } ],
+     identification: [ { position: 20, label: 'SourceName'  } ]  }
+     @EndUserText.label: 'Source Name' 
+_sourcehelp.Name as source_name,
+  @UI: { 
+     lineItem: [ { position: 40, label: 'LevelText' } ],
+     selectionField: [ { position: 40 } ],
+     identification: [ { position: 40, label: 'LevelText'  } ]  }
+     @EndUserText.label: 'Level Text'
+lt.ddtext as leveltext,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 80, label: 'NodeName' } ],
+     selectionField: [ { position: 80 } ],
+     identification: [ { position: 80, label: 'NodeName'  } ]  }
+     @EndUserText.label: 'Node Name'    
+a.description as NodeName,
+  @UI: { 
+     lineItem: [ { position: 90, label: 'SafeStock' } ],
+     selectionField: [ { position: 90 } ],
+     identification: [ { position: 90, label: 'SafeStock'  } ]  }
+     @EndUserText.label: 'Safe Stock'  
+z.safestock,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 100, label: 'Active' } ],
+     selectionField: [ { position: 100 } ],
+     identification: [ { position: 100, label: 'Active'  } ]  }
+     @EndUserText.label: 'Active'    
+cast ( ( case when z.createdby is null then '' else 'X' end ) as boole_d ) as Active,
+  @UI: { 
+     lineItem: [ { position: 110, label: 'CreatedBy' } ],
+     identification: [ { position: 110, label: 'CreatedBy'  } ]  }
+     @EndUserText.label: 'Created By'    
+z.createdby,
+  @UI: { 
+     lineItem: [ { position: 120, label: 'CreatedDate' } ],
+     identification: [ { position: 120, label: 'CreatedDate'  } ]  }
+     @EndUserText.label: 'Create Date'    
+z.createdate,
+  @UI: { 
+     lineItem: [ { position: 130, label: 'CreatedTime' } ],
+     identification: [ { position: 130, label: 'CreatedTime'  } ]  }
+     @EndUserText.label: 'Create Time'    
+z.createtime,
+@Search.defaultSearchElement: true
+_sourcehelp,
+@Search.defaultSearchElement: true
+_levelhelp,
+@Search.defaultSearchElement: true
+_articlehelp,
+@Search.defaultSearchElement: true
+_categoryhelp
+} union 
+select from zoaav_category as c
+cross join /oaa/i_Sources_Union as src
+left outer join zoaa_safestockr as z on z.sourceid   = src.SourceId
+                                    and z.levelcode = '02'
+                                    and z.category  = c.category
+left outer join dd07t as lt  on lt.domname = 'ZOAA_LEVELCODE'
+                            and lt.ddlanguage = $session.system_language
+                            and lt.as4local = 'A'
+                            and lt.domvalue_l = '02'
+association [0..1] to /oaa/i_Sources_Union as _sourcehelp  on _sourcehelp.SourceId = $projection.Source
+association [0..1] to ZOAA_LEVELCODE_VH as _levelhelp  on _levelhelp.Low = $projection.Levelcode
+association [0..1] to ZOAAC_H_ARTICLES as _articlehelp  on _articlehelp.article   =  $projection.Article
+association [0..1] to ZOAAC_H_CATEGORY as _categoryhelp  on _categoryhelp.category = $projection.Category {
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: true, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 10, qualifier:'Channel', importance: 'MEDIUM', label: 'Source' } ],
+     selectionField: [ { position: 10 } ],
+     identification: [ { position: 10, label: 'Source'  } ]  }
+     @EndUserText.label: 'Source'    
+     @Consumption.valueHelp: '_sourcehelp' 
+    key src.SourceId as Source,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 30, label: 'Level' } ],
+     selectionField: [ { position: 30 } ],
+     identification: [ { position: 30, label: 'Level'  } ]  }
+     @EndUserText.label: 'Level'    
+     @Consumption.valueHelp: '_levelhelp' 
+    key '02' as Levelcode,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 50, label: 'Category' } ],
+     selectionField: [ { position: 50 } ],
+     identification: [ { position: 50, label: 'Category'  } ]  }
+     @EndUserText.label: 'Category'    
+     @Consumption.valueHelp: '_categoryhelp'
+    key c.category as Category,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 60, label: 'Article' } ],
+     selectionField: [ { position: 60 } ],
+     identification: [ { position: 60, label: 'Article'  } ]  }
+     @EndUserText.label: 'Article'    
+     @Consumption.valueHelp: '_articlehelp' 
+    key '' as Article,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 70, label: 'Size' } ],
+     selectionField: [ { position: 70 } ],
+     identification: [ { position: 70, label: 'Size'  } ]  }
+     @EndUserText.label: 'Size' 
+    key '' as sizevalue,
+  @UI: { 
+     lineItem: [ { position: 20, importance: 'MEDIUM', label: 'SourceName' } ],
+     selectionField: [ { position: 20 } ],
+     identification: [ { position: 20, label: 'SourceName'  } ]  }
+     @EndUserText.label: 'Source Name' 
+_sourcehelp.Name as source_name,
+  @UI: { 
+     lineItem: [ { position: 40, label: 'LevelText' } ],
+     selectionField: [ { position: 40 } ],
+     identification: [ { position: 40, label: 'LevelText'  } ]  }
+     @EndUserText.label: 'Level Text'
+lt.ddtext as leveltext,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 80, label: 'NodeName' } ],
+     selectionField: [ { position: 80 } ],
+     identification: [ { position: 80, label: 'NodeName'  } ]  }
+     @EndUserText.label: 'Node Name'    
+c.categoryname as NodeName,
+  @UI: { 
+     lineItem: [ { position: 90, label: 'SafeStock' } ],
+     selectionField: [ { position: 90 } ],
+     identification: [ { position: 90, label: 'SafeStock'  } ]  }
+     @EndUserText.label: 'Safe Stock'  
+z.safestock,
+  @Consumption:{ filter: {selectionType: #RANGE, multipleSelections: true, mandatory: false, hidden: false}}
+  @UI: { 
+     lineItem: [ { position: 100, label: 'Active' } ],
+     selectionField: [ { position: 100 } ],
+     identification: [ { position: 100, label: 'Active'  } ]  }
+     @EndUserText.label: 'Active'    
+cast ( ( case when z.createdby is null then '' else 'X' end ) as boole_d ) as Active,
+  @UI: { 
+     lineItem: [ { position: 110, label: 'CreatedBy' } ],
+     identification: [ { position: 110, label: 'CreatedBy'  } ]  }
+     @EndUserText.label: 'Created By'    
+z.createdby,
+  @UI: { 
+     lineItem: [ { position: 120, label: 'CreatedDate' } ],
+     identification: [ { position: 120, label: 'CreatedDate'  } ]  }
+     @EndUserText.label: 'Create Date'    
+z.createdate,
+  @UI: { 
+     lineItem: [ { position: 130, label: 'CreatedTime' } ],
+     identification: [ { position: 130, label: 'CreatedTime'  } ]  }
+     @EndUserText.label: 'Create Time'    
+z.createtime,
+@Search.defaultSearchElement: true
+_sourcehelp,
+@Search.defaultSearchElement: true
+_levelhelp,
+@Search.defaultSearchElement: true
+_articlehelp,
+@Search.defaultSearchElement: true
+_categoryhelp
+} 
+
+***********************************************************************************************
+
+@AbapCatalog.sqlViewName: 'ZV_DOMFIXL'
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@Search.searchable: true
+@EndUserText.label: 'Domain fixed value help'
+define view Zcds_Domain_Fix_Low
+  as select from    dd07l as FixedValue
+    left outer join dd07t as ValueText on  FixedValue.domname    = ValueText.domname
+                                       and FixedValue.domvalue_l = ValueText.domvalue_l
+                                       and FixedValue.as4local   = ValueText.as4local
+
+{
+      @UI.hidden
+  key FixedValue.domname    as DomainName,
+      @UI.hidden
+  key FixedValue.as4local   as Status,
+      @Search.defaultSearchElement: true
+      @Search.fuzzinessThreshold: 0.8
+  key FixedValue.domvalue_l as Low,
+      @Semantics.text: true -- identifies the text field
+      ValueText.ddtext      as Text
+}
+
+where
+      FixedValue.as4local  = 'A' --Active
+  and ValueText.ddlanguage = $session.system_language 
+
+*****************************************************************************************
+
+@AbapCatalog.sqlViewName: 'ZV_LEVELCODE_VH'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Level code value help'
+@Search.searchable: true
+define view ZOAA_LEVELCODE_VH as select from Zcds_Domain_Fix_Low {
+      @UI.hidden
+  key Zcds_Domain_Fix_Low.DomainName,
+      @EndUserText.label: 'Status' -- Custom label text
+  key Zcds_Domain_Fix_Low.Low,
+      @Semantics.text: true            -- identifies the text field
+      @Search.defaultSearchElement: true
+      @Search.fuzzinessThreshold: 0.8
+      Zcds_Domain_Fix_Low.Text
+}
+where
+  Zcds_Domain_Fix_Low.DomainName = 'ZOAA_LEVELCODE' 
+
+***********************************************************************************
+
