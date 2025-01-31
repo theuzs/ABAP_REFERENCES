@@ -1,0 +1,22 @@
+{
+  "changeType": "codeExt",
+  "reference": "customer.app.variant.5",
+  "namespace": "apps/customer.app.variant.5/changes/",
+  "projectId": "customer.app.variant.5",
+  "moduleName": "customer/app/variant/5/changes/coding/ControllerExtension",
+  "support": {
+    "generator": "rta.service.ControllerExtension"
+  },
+  "originalLanguage": "EN",
+  "layer": "CUSTOMER_BASE",
+  "fileType": "change",
+  "fileName": "id_1738245442243_314_codeExt",
+  "content": {
+    "codeRef": "coding/ControllerExtension.js"
+  },
+  "texts": {},
+  "selector": {
+    "controllerName": "sap.suite.ui.generic.template.ObjectPage.view.Details"
+  },
+  "creation": "2025-01-30T13:57:22.244Z"
+}

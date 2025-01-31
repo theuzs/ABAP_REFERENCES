@@ -1,0 +1,5 @@
+<!-- Use stable and unique IDs!-->
+<core:FragmentDefinition xmlns:core='sap.ui.core' xmlns='sap.m'>
+    <!--  add your xml here -->
+    <Button text="New Button"  id="btn-c44c2550"></Button>
+</core:FragmentDefinition>

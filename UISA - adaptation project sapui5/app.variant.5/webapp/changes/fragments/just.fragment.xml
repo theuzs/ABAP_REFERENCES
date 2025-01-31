@@ -1,0 +1,60 @@
+<!-- Use stable and unique IDs!-->
+<core:FragmentDefinition
+    xmlns:uxap="sap.uxap"
+    xmlns:core='sap.ui.core'
+    xmlns='sap.m'
+>
+    <uxap:ObjectPageSection
+        id="op-section-57ec371e"
+        title="New custom section"
+    >
+        <uxap:ObjectPageSubSection id="op-subsection-57ec371e">
+            <HBox id="hbox-57ec371e">
+
+<!-- Justificativa -->
+<VBox id="idQuadroJustificativa" class="sapUiSmallMargin">
+    <Label id="idLabelJustificativa" text="Qual o motivo da regularização, exclusiva ou urgente?" />
+    <TextArea 
+        id="idTextAreaJustificativa" 
+        width="25rem" 
+        rows="3" 
+        minLength="50"
+        value="{oModel>/Justificativa}"
+        ValueLiveUpdate="false"
+        change=".extension.customer.app.variant.5.ControllerExtension.publicMethod"/>
+</VBox>
+
+<!-- Regularização -->
+<VBox id="idQuadroRegularizacao" class="sapUiSmallMargin">
+    <Label id="idLabelRegularizacao" text="O que está sendo regularizado?" />
+    <TextArea 
+        id="idTextAreaRegularizacao" 
+        width="25rem" 
+        rows="3" 
+        minLength="50"
+        value="{oModel>/Regularizacao}"
+        ValueLiveUpdate="false"
+        change=".extension.customer.app.variant.5.ControllerExtension.publicMethod"/>
+
+                </VBox>
+
+                <!-- Informações Adicionais -->
+                <VBox id="idQuadroInformacoes" class="sapUiSmallMarginBegin">
+                    <Label id="idLabelData" text="Data:" />
+                    <Text id="idTextData" />
+                    
+                    <Label id="idLabelHora" text="Hora:" />
+                    <Text id="idTextHora" />
+                    
+                    <Label id="idLabelUsuario" text="Usuário:" />
+                    <Text id="idTextUsuario" />
+                    
+                </VBox>
+
+
+
+
+            </HBox>
+        </uxap:ObjectPageSubSection>
+    </uxap:ObjectPageSection>
+</core:FragmentDefinition>

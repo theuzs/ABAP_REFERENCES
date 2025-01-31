@@ -1,0 +1,32 @@
+{
+  "changeType": "rename",
+  "reference": "customer.app.variant.5",
+  "namespace": "apps/customer.app.variant.5/changes/",
+  "creation": "2025-01-30T13:43:27.151Z",
+  "projectId": "customer.app.variant.5",
+  "packageName": "$TMP",
+  "support": {
+    "generator": "@sap-ux/control-property-editor",
+    "sapui5Version": "1.120.14",
+    "command": "rename"
+  },
+  "originalLanguage": "EN",
+  "layer": "CUSTOMER_BASE",
+  "fileType": "change",
+  "fileName": "id_1738244597709_236_rename",
+  "content": {
+    "originalControlType": "sap.uxap.ObjectPageSection"
+  },
+  "texts": {
+    "newText": {
+      "value": "Justificativa",
+      "type": "XGRP"
+    }
+  },
+  "selector": {
+    "id": "ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.5.op-section-efb3bd6c",
+    "idIsLocal": false
+  },
+  "dependentSelector": {},
+  "jsOnly": false
+}
