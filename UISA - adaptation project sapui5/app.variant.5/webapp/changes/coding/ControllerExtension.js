@@ -9,55 +9,123 @@ sap.ui.define(
     function (ControllerExtension, OverrideExecution, JSONModel, MessageToast) {
 
         'use strict';
-        return ControllerExtension.extend("customer.app.variant.5.ControllerExtension", {
+        return ControllerExtension.extend("customer.app.variant.4.ObjectPage", {
+
+            handleLiveChangeJust: function (oEvent) {
+                var oTextArea = oEvent.getSource(),
+                    sValue = oTextArea.getValue().trim(), // Remove espaços em branco no início e fim
+                    iValueLength = sValue.length,
+                    sState,
+                    sStateText = "";
             
-            metadata: {
-            	// extension can declare the public methods
-            	// in general methods that start with "_" are private
-            	methods: {
-            		publicMethod: {
-            			public: true /*default*/ ,
-            			final: false /*default*/ ,
-            			overrideExecution: OverrideExecution.Instead /*default*/
-            		},
-            		finalPublicMethod: {
-            			final: true
-            		},
-            		onMyHook: {
-            			public: true /*default*/ ,
-            			final: false /*default*/ ,
-            			overrideExecution: OverrideExecution.After
-            		},
-            		couldBePrivate: {
-            			public: false
-            		}
-            	}
-            },
-            // adding a private method, only accessible from this controller extension
-            _privateMethod: function() {},
-            // adding a public method, might be called from or overridden by other controller extensions as well
-
-
-
-            publicMethod: function(oEvent) {
-                var sHoraAtual = new Date().toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/:/g, "H") + "S";
-                var scurrentUser = sap.ushell?.Container?.getService("UserInfo")?.getId() || "Usuário não encontrado";
-                var oModel = this.getView().getModel("oModel");
-                var sJustificativa = oModel.getProperty("/Justificativa");
-                var sRegularizacao = oModel.getProperty("/Regularizacao");
-            
-                // Validação: Verifica se os campos estão preenchidos
-                if (!sJustificativa || !sRegularizacao) {
-                    return;
+                // Validação: Campo obrigatório
+                if (iValueLength === 0) {
+                    sState = sap.ui.core.ValueState.Error;
+                    sStateText = "Campo justificativa é obrigatório";
+                } 
+                // Validação: Comprimento mínimo de 50 caracteres
+                else if (iValueLength < 50) {
+                    sState = sap.ui.core.ValueState.Warning;
+                    sStateText = "Comprimento da justificativa deve ser maior que 50 caracteres";
+                } 
+                // Caso válido
+                else {
+                    sState = sap.ui.core.ValueState.None;
                 }
             
+                oTextArea.setValueState(sState);
+                oTextArea.setValueStateText(sStateText);
+            },
+            
+            handleLiveChangeReg: function (oEvent) {
+                var oTextArea = oEvent.getSource(),
+                    sValue = oTextArea.getValue().trim(),
+                    iValueLength = sValue.length,
+                    sState,
+                    sStateText = "";
+            
+                // Validação: Campo obrigatório
+                if (iValueLength === 0) {
+                    sState = sap.ui.core.ValueState.Error;
+                    sStateText = "Campo regularização é obrigatório";
+                } 
+                // Validação: Comprimento mínimo de 50 caracteres
+                else if (iValueLength < 50) {
+                    sState = sap.ui.core.ValueState.Warning;
+                    sStateText = "Comprimento da regularização deve ser maior que 50 caracteres";
+                } 
+                // Caso válido
+                else {
+                    sState = sap.ui.core.ValueState.None;
+                }
+            
+                oTextArea.setValueState(sState);
+                oTextArea.setValueStateText(sStateText);
+            },
+            
+            publicMethod: function(on_Init) {
+            // Limpar variáveis antes de abrir a tela
+            oModel.setProperty("/Justificativa", "");
+            oModel.setProperty("/Regularizacao", "");
+            }            
+            ,                            
+            publicMethod: function(oEvent) {
+                var oDate = new Date();
+                var sHoraAtual = "PT" + 
+                String(oDate.getHours()).padStart(2, "0") + "H" + 
+                String(oDate.getMinutes()).padStart(2, "0") + "M" + 
+                String(oDate.getSeconds()).padStart(2, "0") + "S";
+                var scurrentUser = sap.ushell?.Container?.getService("UserInfo")?.getId() || "Usuário não encontrado";
+                var oModel = this.getView().getModel("oModel");
+                var sData = oDate.toISOString().split("T")[0] + "T00:00:00"
+                sHoraAtual = sHoraAtual.replace("MM", "M");
+
+                var sJustificativa = oModel.getProperty("/Justificativa");
+                var sRegularizacao = oModel.getProperty("/Regularizacao");
+
+                // Recupera os controles de entrada (ajuste os IDs conforme necessário)
+                var oInputJustificativa = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaJustificativa");
+                var oInputRegularizacao = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaRegularizacao");
+
+                // Validação: Verifica se os campos estão preenchidos
+
+                    if (oInputJustificativa && !sJustificativa) {
+                        // oInputJustificativa.setValueState(sap.ui.core.ValueState.Error);
+                        // oInputJustificativa.setValueStateText("Campo justificativa é obrigatório");
+                        return;
+                    }else{
+                        // oInputJustificativa.setValueState(sap.ui.core.ValueState.None);
+                    }
+
+
+                    if (oInputRegularizacao && !sRegularizacao) {
+
+                        // oInputRegularizacao.setValueState(sap.ui.core.ValueState.Error);
+                        // oInputRegularizacao.setValueStateText("Campo regularização é obrigatório");
+                        return;
+                    }else{
+                        // oInputRegularizacao.setValueState(sap.ui.core.ValueState.None);
+                    }
+
+
+            // Validação: Verifica se os campos possuem pelo menos 50 caracteres
+            if (sJustificativa.length < 50  && oInputJustificativa ) {
+                // oInputJustificativa.setValueState(sap.ui.core.ValueState.Warning);
+                // oInputJustificativa.setValueStateText("Comprimento da justificativa deve ser maior que 50 caracteres");
+                return;
+               }
+            if (sRegularizacao.length < 50 && oInputRegularizacao  ) {
+                // oInputRegularizacao.setValueState(sap.ui.core.ValueState.Warning);
+                // oInputRegularizacao.setValueStateText("Comprimento da regularização deve ser maior que 50 caracteres.");
+                return;
+               }
                 // Dados a serem enviados
                 var oPayload = {
                     "Banfn": "9999999999",
                     "Texto_just1": sJustificativa,
                     "Texto_just2": sRegularizacao,
                     "Usuario": scurrentUser,
-                    "Data": new Date().toISOString(), // Formato YYYY-MM-DD
+                    "Data": sData, 
                     "Hora": sHoraAtual
                 };
             
@@ -118,7 +186,14 @@ sap.ui.define(
                                 "X-CSRF-Token": this.token
                             },
                             body: JSON.stringify(oPayload)
-                        });
+                        })
+                        // .then(response => {
+                        //     if (!response.ok) {
+                        //         return response.text().then(text => { throw new Error(text); });
+                        //     }
+                        //     return response;
+                        // })
+                        ;
                     }
                 })
                 .then(response => {
@@ -132,95 +207,77 @@ sap.ui.define(
                     sap.m.MessageToast.show("Justificativa salva/atualizada com sucesso!");
                 })
                 .catch(error => {
-                    sap.m.MessageToast.show(error.message);
+                    // sap.m.MessageToast.show(error.message);
                     console.log(error);
                 });
-            }
+            },
+        
+        
+            _onPurchaseReqTypeChange: function (oEvent) {
+                var sValue = oEvent.getSource().getValue(); // Obtém o novo valor do campo
+            
+                var extractedCode = sValue; // Por padrão, usa o valor sem espaços
 
-            ,
-            // adding final public method, might be called from, but not overridden by other controller extensions as well
-            finalPublicMethod: function() {},
-            // adding a hook method, might be called by or overridden from other controller extensions
-            // override these method does not replace the implementation, but executes after the original method
-            onMyHook: function() {},
-            // method public per default, but made private via metadata
-            couldBePrivate: function() {},
-            // this section allows to extend lifecycle hooks or override public methods of the base controller
-                // Definição de Métodos
-                _onPurchaseReqTypeChange: function (oEvent) {
-                    var sValue = oEvent.getSource().getValue(); // Obtém o novo valor do campo
-                
-                    console.log("Novo valor do campo PurchaseRequisitionType:", sValue);
-                
-                    // Verifica se o valor não é nenhum dos valores permitidos
-                    if (["ZURG", "ZUTI", "ZREG", "ZDET"].indexOf(sValue) === -1) {
-                        // Se o valor for diferente de ZURG, ZUTI, ZREG e ZDET, oculta a seção
-                        var oSection = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.5.op-section-57ec371e");
-                        if (oSection) {
-                            oSection.setVisible(false); // Torna a seção invisível
-                            console.log("Seção ocultada");
-                        }
-                    } else {
-                        // Se o valor for ZURG, ZUTI, ZREG ou ZDET, garante que a seção esteja visível
-                        var oSection = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.5.op-section-57ec371e");
-                        if (oSection) {
-                            oSection.setVisible(true); // Torna a seção visível se ela já existir
-                            console.log("Seção já existente e visível");
-                            var sHoraAtual = new Date().toLocaleTimeString();
-                            var scurrentDate = new Date().toLocaleDateString();
-                            var scurrentUser = sap.ushell?.Container?.getService("UserInfo")?.getId() || "Usuário não encontrado";
-
-                            this.byId("idTextHora").setText(sHoraAtual);
-                            this.byId("idTextData").setText(scurrentDate);
-                            this.byId("idTextUsuario").setText(scurrentUser);
-                            
-                        } else {
-                            console.log("Seção não encontrada");
-                        }
-                    }
-                
-                    // Exemplo de validação: Se o valor for vazio, mostra um alerta
-                    if (!sValue) {
-                        // sap.m.MessageToast.show("O tipo de requisição de compra não pode estar vazio.");
+                if (typeof sValue === "string" &&  sValue.includes("(") && sValue.includes(")")) {
+                    var match = sValue.match(/\(([^)]+)\)$/); // Pega tudo entre os parênteses no final da string
+                    if (match) {
+                        extractedCode = match[1]; // Se encontrou, usa o código extraído
                     }
                 }
-                
-                ,
-            override: {
-            	/**
-            	 * Called when a controller is instantiated and its View controls (if available) are already created.
-            	 * Can be used to modify the View before it is displayed, to bind event handlers and do other one-time initialization.
-            	 * @memberOf {{controllerExtPath}}
-            	 */
-            	onInit: function() {
-                    console.log("Controller Extension carregado!");
-                    // this.token = this.getOwnerComponent().getModel().getSecurityToken();
-                    // this.token = this.oModel.getSecurityToken(); // Obtém o CSRF-Token
 
-                    var oModel = new JSONModel({
-                        currentDate: new Date().toLocaleDateString(),
-                        currentTime: new Date().toLocaleTimeString(),
-                        currentUser: sap.ushell?.Container?.getService("UserInfo")?.getId() || "Usuário não encontrado",
-                        Justificativa: "",
-                        Regularizacao: ""
-                    });
-                    this.getView().setModel(oModel, "oModel");
-                
-        
-            	},
-            	/**
-            	 * Similar to onAfterRendering, but this hook is invoked before the controller's View is re-rendered
-            	 * (NOT before the first rendering! onInit() is used for that one!).
-            	 * @memberOf {{controllerExtPath}}
-            	 */
-            	onBeforeRendering: function() {
-            	},
-            	/**
-            	 * Called when the View has been rendered (so its HTML is part of the document). Post-rendering manipulations of the HTML could be done here.
-            	 * This hook is the same one that SAPUI5 controls get after being rendered.
-            	 * @memberOf {{controllerExtPath}}
-            	 */
-            	onAfterRendering: function () {
+                console.log("Novo valor do campo PurchaseRequisitionType:", sValue);
+            
+                // Verifica se o valor não é nenhum dos valores permitidos
+                if (["ZURG", "ZRTI", "ZUTI", "ZREG", "ZDET"].indexOf(extractedCode) === -1) {
+                    // Se o valor for diferente de ZURG, ZUTI, ZREG e ZDET, oculta a seção
+                    var oSection = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.op-section-d53ec658");
+                    if (oSection) {
+                        oSection.setVisible(false); // Torna a seção invisível
+                        console.log("Seção ocultada");
+                    }
+                } else {
+                    // Se o valor for ZURG, ZRTI, ZUTI, ZREG ou ZDET, garante que a seção esteja visível
+                    var oSection = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.op-section-d53ec658");
+                    if (oSection) {
+                        oSection.setVisible(true); // Torna a seção visível se ela já existir
+                        console.log("Seção já existente e visível");
+                    } else {
+                        console.log("Seção não encontrada");
+                    }
+                }
+            
+                // Exemplo de validação: Se o valor for vazio, mostra um alerta
+                if (!sValue) {
+                    // sap.m.MessageToast.show("O tipo de requisição de compra não pode estar vazio.");
+                }
+            }
+            ,
+            onRoutePatternMatched: function(event) {
+
+                var sCurrentRoute = event.getParameter("name");
+                var sPreviousRoute = this._sPreviousRoute || ""; // Pega a rota anterior (caso tenha)
+            
+                // Atualiza a rota anterior com a rota atual
+                this._sPreviousRoute = sCurrentRoute; 
+            
+                // Se a tela não for "C_PurchaseReqnHeaderquery", sai da função
+                if (sCurrentRoute !== "C_PurchaseReqnHeaderquery") {
+                    return;
+                }
+
+
+                if ( sPreviousRoute !== "C_PurchaseReqnHeader/to_PurchaseReqnItemquery") {
+
+                var oModel = new JSONModel({
+                    currentDate: new Date().toLocaleDateString(),
+                    currentTime: new Date().toLocaleTimeString(),
+                    currentUser: sap.ushell?.Container?.getService("UserInfo")?.getId() || "Usuário não encontrado",
+                    Justificativa: "",
+                    Regularizacao: ""
+                });
+                this.getView().setModel(oModel, "oModel");
+
+            }
 
                     var sHoraAtual = new Date().toLocaleTimeString();
                     var scurrentDate = new Date().toLocaleDateString();
@@ -256,19 +313,161 @@ sap.ui.define(
                     } else {
                         console.warn("GroupElement não encontrado.");
                     }
-                },
-                
+                this.loadData();
+            },
+            
+            loadData: function() {
+                // Sua lógica de buscar os dados da API ou do backend
+            },
+            _onValidarAntesDeCriar: function (oEvent) {
 
 
+                var oMessageManager = sap.ui.getCore().getMessageManager();
+                var oModel = this.getView().getModel("oModel");
+
+                var sJustificativa = oModel.getProperty("/Justificativa");
+                var sRegularizacao = oModel.getProperty("/Regularizacao");
+            
+                var oInputJustificativa = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaJustificativa");
+                var oInputRegularizacao = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaRegularizacao");
+
+            
+            
+                var bValid = true; 
+            
+                // Validação Justificativa
+                if (!sJustificativa) {
+                    oInputJustificativa.setValueState(sap.ui.core.ValueState.Error);
+                    oInputJustificativa.setValueStateText("Campo justificativa é obrigatório");
+                    bValid = false;
+                } else if (sJustificativa.length < 50) {
+                    oInputJustificativa.setValueState(sap.ui.core.ValueState.Warning);
+                    oInputJustificativa.setValueStateText("Comprimento da justificativa deve ser maior que 50 caracteres");
+                    bValid = false;
+                } else {
+                    oInputJustificativa.setValueState(sap.ui.core.ValueState.None);
+                }
+            
+                // Validação Regularização
+                if (!sRegularizacao) {
+                    oInputRegularizacao.setValueState(sap.ui.core.ValueState.Error);
+                    oInputRegularizacao.setValueStateText("Campo regularização é obrigatório");
+                    bValid = false;
+                } else if (sRegularizacao.length < 50) {
+                    oInputRegularizacao.setValueState(sap.ui.core.ValueState.Warning);
+                    oInputRegularizacao.setValueStateText("Comprimento da regularização deve ser maior que 50 caracteres.");
+                    bValid = false;
+                } else {
+                    oInputRegularizacao.setValueState(sap.ui.core.ValueState.None);
+                }
+            
+                if (!bValid) {
+
+                    oMessageManager.addMessages(new sap.ui.core.message.Message({
+                                message: "Secção justificativa é obrigatória",
+                                type: sap.ui.core.MessageType.Error,
+                                target: oInputJustificativa.getId(),
+                                processor: oMessageManager.getMessageModel()
+                            }));
+                }
+            
+            },
+
+            override: {
             	/**
-            	 * Called when the Controller is destroyed. Use this one to free resources and finalize activities.
+            	 * Called when a controller is instantiated and its View controls (if available) are already created.
+            	 * Can be used to modify the View before it is displayed, to bind event handlers and do other one-time initialization.
             	 * @memberOf {{controllerExtPath}}
             	 */
-            	onExit: function() {
+            	onInit: function() {
+                    console.log("Controller Extension carregado!");
+                    // this.token = this.oModel.getSecurityToken(); // Obtém o CSRF-Token 
+
+                    var oModel = new JSONModel({
+                        currentDate: new Date().toLocaleDateString(),
+                        currentTime: new Date().toLocaleTimeString(),
+                        currentUser: sap.ushell?.Container?.getService("UserInfo")?.getId() || "Usuário não encontrado",
+                        Justificativa: "",
+                        Regularizacao: ""
+                    });
+                    this.getView().setModel(oModel, "oModel");
+        
+                    var oController = this; 
+                    var oComponent = sap.ui.core.Component.getOwnerComponentFor(this.getView());
+                       if (oComponent && typeof oComponent.getRouter === "function") {
+                           var oRouter = oComponent.getRouter();
+                         var myRoute = oRouter.getRoute("C_PurchaseReqnHeader");
+                           
+                           if (myRoute) {
+                               myRoute.attachPatternMatched(oController.onRoutePatternMatched, this);
+                               oRouter.attachRoutePatternMatched(oController.onRoutePatternMatched, this);
+                           } else {
+                               console.error("Rota 'ObjectPage' não encontrada.");
+                           }
+                       } else {
+                           console.error("Componente não possui roteador.");
+                       }
+                   
             	},
-            	// override public method of the base controller
-            	basePublicMethod: function() {
-            	}
+
+            	/**
+            	 * Similar to onAfterRendering, but this hook is invoked before the controller's View is re-rendered
+            	 * (NOT before the first rendering! onInit() is used for that one!).
+            	 * @memberOf {{controllerExtPath}}
+            	 */
+            	onBeforeRendering: function() {
+            	},
+            	/**
+            	 * Called when the View has been rendered (so its HTML is part of the document). Post-rendering manipulations of the HTML could be done here.
+            	 * This hook is the same one that SAPUI5 controls get after being rendered.
+            	 * @memberOf {{controllerExtPath}}
+            	 */
+                onAfterRendering: function () {
+
+                    var sHoraAtual = new Date().toLocaleTimeString();
+                    var scurrentDate = new Date().toLocaleDateString();
+                    var scurrentUser = sap.ushell?.Container?.getService("UserInfo")?.getId() || "Usuário não encontrado";
+
+                    this.byId("idTextHora").setText(sHoraAtual);
+                    this.byId("idTextData").setText(scurrentDate);
+                    this.byId("idTextUsuario").setText(scurrentUser);
+
+                    var oController = this; // Salva a referência do this
+
+                    var oGroupElement = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--iDocType::PurchaseRequisitionType::GroupElement");
+
+                    if (oGroupElement) {
+                        // Acessa os campos dentro do GroupElement
+                        var oField = oGroupElement.getAggregation("fields")[0]; // Assume que existe um único campo de entrada
+                
+                        if (oField && oField.attachChange) {
+                            // Adiciona o evento de mudança ao campo
+                            oField.attachChange(oController._onPurchaseReqTypeChange.bind(oController));
+                            oController._onPurchaseReqTypeChange({
+                                getSource: function() {
+                                    return {
+                                        getValue: function() {
+                                            return oField.getValue(); // Pega o valor atual do campo
+                                        }
+                                    };
+                                }
+                            });
+                        }else {
+                            console.warn("Campo não encontrado ou não é um campo válido.");
+                        }
+                    } else {
+                        console.warn("GroupElement não encontrado.");
+                    }
+
+                    var oButton = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--activate");
+
+                    if (oButton) {
+                        oButton.attachPress(this._onValidarAntesDeCriar.bind(this));
+                    }
+
+
+
+                }
             }
         });
     }
