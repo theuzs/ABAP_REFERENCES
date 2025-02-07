@@ -68,7 +68,26 @@ sap.ui.define(
             oModel.setProperty("/Justificativa", "");
             oModel.setProperty("/Regularizacao", "");
             }            
-            ,                            
+            , 
+            formatarData: function (timestamp) {
+                var data = new Date(parseInt(timestamp.match(/\d+/)[0])); // Extrai e converte o número
+                data.setDate(data.getDate() + 1); // Soma 1 no dia
+                
+                return data.toLocaleDateString("pt-BR"); // Formata para DD/MM/YYYY
+            },
+
+            formatarHora : function (isoHora) {
+                var match = isoHora.match(/PT(\d+)H(\d+)M(\d+)S/);
+                if (!match) return "00:00:00"; // Retorno padrão caso falhe
+            
+                var horas = match[1].padStart(2, "0");
+                var minutos = match[2].padStart(2, "0");
+                var segundos = match[3].padStart(2, "0");
+            
+                return `${horas}:${minutos}:${segundos}`;
+            },
+
+
             publicMethod: function(oEvent) {
                 var oDate = new Date();
                 var sHoraAtual = "PT" + 
@@ -254,6 +273,7 @@ sap.ui.define(
             ,
             onRoutePatternMatched: function(event) {
 
+                 
                 var sCurrentRoute = event.getParameter("name");
                 var sPreviousRoute = this._sPreviousRoute || ""; // Pega a rota anterior (caso tenha)
             
@@ -264,9 +284,21 @@ sap.ui.define(
                 if (sCurrentRoute !== "C_PurchaseReqnHeaderquery") {
                     return;
                 }
+                var oInputJustificativa = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaJustificativa");
+                var oInputRegularizacao = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaRegularizacao");
+
+                if (oInputJustificativa) {
+                    oInputJustificativa.setEditable(true); // Desabilita edição
+                }
+                
+                if (oInputRegularizacao) {
+                    oInputRegularizacao.setEditable(true); // Desabilita edição
+                }
 
 
-                if ( sPreviousRoute !== "C_PurchaseReqnHeader/to_PurchaseReqnItemquery") {
+                if (sPreviousRoute !== "C_PurchaseReqnHeader/to_PurchaseReqnItemquery" && sPreviousRoute !== "C_PurchaseReqnHeaderquery" 
+                    // && sPreviousRoute !== "rootquery" &&  sPreviousRoute !== "" 
+                ) {
 
                 var oModel = new JSONModel({
                     currentDate: new Date().toLocaleDateString(),
@@ -279,6 +311,139 @@ sap.ui.define(
 
             }
 
+            // if (sPreviousRoute !== "C_PurchaseReqnHeader/to_PurchaseReqnItemquery" && sPreviousRoute !== "C_PurchaseReqnHeaderquery" ) {
+
+            //     var oModel = new JSONModel({
+            //         currentDate: new Date().toLocaleDateString(),
+            //         currentTime: new Date().toLocaleTimeString(),
+            //         currentUser: sap.ushell?.Container?.getService("UserInfo")?.getId() || "Usuário não encontrado",
+            //         Justificativa: "",
+            //         Regularizacao: ""
+            //     });
+            //     this.getView().setModel(oModel, "oModel");
+            
+            // }
+
+
+
+
+
+
+
+            
+            if (sPreviousRoute == "rootquery" && sCurrentRoute == "C_PurchaseReqnHeaderquery" 
+                || sPreviousRoute == "" && sCurrentRoute == "C_PurchaseReqnHeaderquery" 
+            ) {
+            
+                const sUrl = "/sap/opu/odata/sap/ZMM_JUST_BANFN_CDS/ZMM_JUST_Banfn";
+
+                const currentUrl = window.location.href;
+
+                // Expressão regular para encontrar o valor de PurchaseRequisition
+                const match = currentUrl.match(/PurchaseRequisition='(\d+)'/);
+                
+                if (match) {
+                    const purchaseRequisition = match[1]; // Captura o valor numérico
+                    console.log("PurchaseRequisition:", purchaseRequisition);
+
+
+                    var extractedCode = purchaseRequisition; // Por padrão, usa o valor sem espaços
+            
+
+
+                    // Fetch com a URL ajustada
+                    fetch(sUrl + "('" + extractedCode + "')" + "/?$format=json", {
+                        method: "GET",
+    
+                    })
+                    .then(response => response.json())  // Faz o parse da resposta JSON
+                    .then(data => {
+                        // Dados extraídos do OData
+                        var justificativa = data.d.TextoJust1 || "";
+                        var regularizacao = data.d.TextoJust2 || "";
+                        var dataReq = data.d.Data || "";  // Data da requisição
+                        var horaReq = data.d.Hora || "";  // Hora da requisição
+                        var usuarioReq = data.d.Usuario || "";
+                        var oController = this; // Salva a referência do this
+                        // Atualizando o modelo com os dados extraídos
+                        var oModel = new JSONModel({
+                            currentDate: dataReq,  // Usando a data da requisição
+                            currentTime: horaReq,  // Usando a hora da requisição
+                            currentUser: usuarioReq, // Usando o usuário da requisição
+                            Justificativa: justificativa,
+                            Regularizacao: regularizacao
+                        });
+                
+                        // Definir o modelo na view
+                        this.getView().setModel(oModel, "oModel");
+
+                        var oInputJustificativa = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaJustificativa");
+                        var oInputRegularizacao = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaRegularizacao");
+
+                        if (oInputJustificativa) {
+                            oInputJustificativa.setEditable(false); // Desabilita edição
+                        }
+                        
+                        if (oInputRegularizacao) {
+                            oInputRegularizacao.setEditable(false); // Desabilita edição
+                        }
+
+                        // this.byId("idTextHora").setText(horaReq);
+                        // this.byId("idTextData").setText(dataReq);
+                        // this.byId("idTextUsuario").setText(usuarioReq);
+                        var oController = this; // Salva a referência do this
+
+                        this.byId("idTextData").setText(oController.formatarData(dataReq));
+                        this.byId("idTextHora").setText(oController.formatarHora(horaReq)); 
+                        this.byId("idTextUsuario").setText(usuarioReq);
+                        
+
+
+                       
+                        var oController = this; // Salva a referência do this
+                        var oGroupElement = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--iDocType::PurchaseRequisitionType::GroupElement");
+    
+                        if (oGroupElement) {
+                            // Acessa os campos dentro do GroupElement
+                            var oField = oGroupElement.getAggregation("fields")[0]; // Assume que existe um único campo de entrada
+                        
+                            if (oField && oField.setValue) {
+                                // Define um novo valor antes de disparar o evento
+                                var novoValor = "ZRTI"; 
+                                // oField.setValue(novoValor);
+                        
+                                if (oField.attachChange) {
+                                    // Adiciona o evento de mudança ao campo
+                                    oField.attachChange(oController._onPurchaseReqTypeChange.bind(oController));
+                        
+                                    // Dispara o evento manualmente passando o novo valor
+                                    oController._onPurchaseReqTypeChange({
+                                        getSource: function() {
+                                            return {
+                                                getValue: function() {
+                                                    return novoValor; // Retorna o valor que acabamos de definir
+                                                }
+                                            };
+                                        }
+                                    });
+                                }
+                            } else {
+                                console.warn("Campo não encontrado ou não é um campo válido.");
+                            }
+                        } else {
+                            console.warn("GroupElement não encontrado.");
+                        }
+                        this.loadData();
+                        
+
+
+                    })
+                    .catch(error => {
+                        console.error("Erro ao buscar dados do OData:", error);
+                    });
+                }else{
+
+                    
                     var sHoraAtual = new Date().toLocaleTimeString();
                     var scurrentDate = new Date().toLocaleDateString();
                     var scurrentUser = sap.ushell?.Container?.getService("UserInfo")?.getId() || "Usuário não encontrado";
@@ -287,10 +452,52 @@ sap.ui.define(
                     this.byId("idTextData").setText(scurrentDate);
                     this.byId("idTextUsuario").setText(scurrentUser);
 
-                    var oController = this; // Salva a referência do this
 
                     var oGroupElement = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--iDocType::PurchaseRequisitionType::GroupElement");
+                    var oController = this; // Salva a referência do this
+                    if (oGroupElement) {
+                        // Acessa os campos dentro do GroupElement
+                        var oField = oGroupElement.getAggregation("fields")[0]; // Assume que existe um único campo de entrada
+                        var novoValor = "NB"; 
+                        if (oField && oField.attachChange) {
+                            // Adiciona o evento de mudança ao campo
+                            oField.attachChange(oController._onPurchaseReqTypeChange.bind(oController));
+                            oController._onPurchaseReqTypeChange({
+                                getSource: function() {
+                                    return {
+                                        getValue: function() {
+                                            return novoValor; // Pega o valor atual do campo
+                                        }
+                                    };
+                                }
+                            });
+                        }else {
+                            console.warn("Campo não encontrado ou não é um campo válido.");
+                        }
+                    } else {
+                        console.warn("GroupElement não encontrado.");
+                    }
+                this.loadData();
 
+                }
+                
+
+                } else {
+                    console.log("PurchaseRequisition não encontrado na URL.");
+
+
+
+                    var sHoraAtual = new Date().toLocaleTimeString();
+                    var scurrentDate = new Date().toLocaleDateString();
+                    var scurrentUser = sap.ushell?.Container?.getService("UserInfo")?.getId() || "Usuário não encontrado";
+
+                    this.byId("idTextHora").setText(sHoraAtual);
+                    this.byId("idTextData").setText(scurrentDate);
+                    this.byId("idTextUsuario").setText(scurrentUser);
+
+
+                    var oGroupElement = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--iDocType::PurchaseRequisitionType::GroupElement");
+                    var oController = this; // Salva a referência do this
                     if (oGroupElement) {
                         // Acessa os campos dentro do GroupElement
                         var oField = oGroupElement.getAggregation("fields")[0]; // Assume que existe um único campo de entrada
@@ -314,35 +521,80 @@ sap.ui.define(
                         console.warn("GroupElement não encontrado.");
                     }
                 this.loadData();
+
+                }
+
+        
+              
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+
             },
+
+
+
+
             
             loadData: function() {
                 // Sua lógica de buscar os dados da API ou do backend
             },
-            _onValidarAntesDeCriar: function (oEvent) {
-
-
-                var oMessageManager = sap.ui.getCore().getMessageManager();
+            _onValidarAntesDeCriar: async function (oEvent) {
                 var oModel = this.getView().getModel("oModel");
-
+                var oMessageManager = sap.ui.getCore().getMessageManager();
+                oMessageManager.removeAllMessages();
+            
                 var sJustificativa = oModel.getProperty("/Justificativa");
                 var sRegularizacao = oModel.getProperty("/Regularizacao");
             
                 var oInputJustificativa = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaJustificativa");
                 var oInputRegularizacao = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaRegularizacao");
+            
 
+                var oSection = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.op-section-d53ec658");
             
+                var bValid = true;
+                var aMessages = [];
             
-                var bValid = true; 
+                // Se a seção estiver invisível, ignora a validação
+                if (oSection && !oSection.getVisible()) {
+                    console.log("Seção invisível, pulando validação");
+                    return true;
+                }
             
                 // Validação Justificativa
                 if (!sJustificativa) {
                     oInputJustificativa.setValueState(sap.ui.core.ValueState.Error);
                     oInputJustificativa.setValueStateText("Campo justificativa é obrigatório");
+                    // aMessages.push("Campo justificativa é obrigatório.");
                     bValid = false;
                 } else if (sJustificativa.length < 50) {
                     oInputJustificativa.setValueState(sap.ui.core.ValueState.Warning);
                     oInputJustificativa.setValueStateText("Comprimento da justificativa deve ser maior que 50 caracteres");
+                    // aMessages.push("Comprimento da justificativa deve ser maior que 50 caracteres.");
                     bValid = false;
                 } else {
                     oInputJustificativa.setValueState(sap.ui.core.ValueState.None);
@@ -352,27 +604,145 @@ sap.ui.define(
                 if (!sRegularizacao) {
                     oInputRegularizacao.setValueState(sap.ui.core.ValueState.Error);
                     oInputRegularizacao.setValueStateText("Campo regularização é obrigatório");
+                    // aMessages.push("Campo regularização é obrigatório.");
                     bValid = false;
                 } else if (sRegularizacao.length < 50) {
                     oInputRegularizacao.setValueState(sap.ui.core.ValueState.Warning);
                     oInputRegularizacao.setValueStateText("Comprimento da regularização deve ser maior que 50 caracteres.");
+                    // aMessages.push("Comprimento da regularização deve ser maior que 50 caracteres.");
                     bValid = false;
                 } else {
                     oInputRegularizacao.setValueState(sap.ui.core.ValueState.None);
                 }
             
+                // Se houver erros, exibe mensagem e impede a criação
                 if (!bValid) {
 
-                    oMessageManager.addMessages(new sap.ui.core.message.Message({
-                                message: "Secção justificativa é obrigatória",
-                                type: sap.ui.core.MessageType.Error,
-                                target: oInputJustificativa.getId(),
-                                processor: oMessageManager.getMessageModel()
-                            }));
-                }
-            
-            },
+                    // sap.m.MessageBox.error(aMessages.join("\n"), {
+                    //     onClose: function () {
+                    //         setTimeout(function () {
+                    //             // oMessageManager.removeAllMessages();
+                    //         }, 100);
+                    //     }
+                    // });
 
+
+                    var oDate = new Date();
+                    var sHoraAtual = "PT" + 
+                    String(oDate.getHours()).padStart(2, "0") + "H" + 
+                    String(oDate.getMinutes()).padStart(2, "0") + "M" + 
+                    String(oDate.getSeconds()).padStart(2, "0") + "S";
+                    var scurrentUser = sap.ushell?.Container?.getService("UserInfo")?.getId() || "Usuário não encontrado";
+                    var oModel = this.getView().getModel("oModel");
+                    var sData = oDate.toISOString().split("T")[0] + "T00:00:00"
+                    sHoraAtual = sHoraAtual.replace("MM", "M");
+    
+                    var sJustificativa = "ERRO JUSTIFICATIVA ERRO";
+                    var sRegularizacao = "ERRO REGULARIZACAO ERRO";
+    
+                    // Recupera os controles de entrada (ajuste os IDs conforme necessário)
+                    var oInputJustificativa = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaJustificativa");
+                    var oInputRegularizacao = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaRegularizacao");
+    
+
+                  var oPayload = {
+                    "Banfn": "8888888888",
+                    "Texto_just1": sJustificativa,
+                    "Texto_just2": sRegularizacao,
+                    "Usuario": scurrentUser,
+                    "Data": sData, 
+                    "Hora": sHoraAtual
+                };
+            
+                const sUrl = "/sap/opu/odata/sap/ZMM_JUST_CDS/ZMM_JUST";
+            
+                // Etapa 1: Obter o token CSRF
+                fetch(sUrl, {
+                    method: "GET",
+                    headers: {
+                        "X-CSRF-Token": "Fetch"
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao buscar token CSRF');
+                    }
+                    return response.headers.get("X-CSRF-Token");
+                })
+                .then(token => {
+                    this.token = token;
+                    // console.log("Token CSRF obtido:", this.token);
+            
+                    // Etapa 2: Verificar se a justificativa já existe (GET)
+                    return fetch(sUrl + "('8888888888')", {
+                        method: "GET",
+                        headers: {
+                            "X-CSRF-Token": this.token
+                        }
+                    });
+                })
+                .then(response => {
+                    if (!response.ok && response.status !== 404) {
+                        // throw new Error('Erro ao verificar justificativa existente');
+                    }
+            
+                    // Caso a justificativa não exista, cria um novo registro (POST)
+                    if (response.status === 404) {
+                        return fetch(sUrl, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-Token": this.token
+                            },
+                            body: JSON.stringify(oPayload)
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                // return response.text().then(text => { throw new Error(text); });
+                            }
+                            return response;
+                        });
+                    } else {
+                        // Caso a justificativa já exista, atualiza a justificativa (PUT)
+                        return fetch(sUrl + "('8888888888')", {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-Token": this.token
+                            },
+                            body: JSON.stringify(oPayload)
+                        })
+                        // .then(response => {
+                        //     if (!response.ok) {
+                        //         return response.text().then(text => { throw new Error(text); });
+                        //     }
+                        //     return response;
+                        // })
+                        ;
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        // throw new Error('Erro ao salvar ou atualizar justificativa');
+                    }
+                    // return response.json();
+                })
+                .then(data => {
+                    // console.log("Resposta do servidor:", data);
+                    // sap.m.MessageToast.show("Justificativa salva/atualizada com sucesso!");
+                })
+                .catch(error => {
+                    // sap.m.MessageToast.show(error.message);
+                    // console.log(error);
+                });
+
+                
+                await new Promise(function(resolve){setTimeout(resolve, 2000)});
+
+                }
+                // oMessageManager.removeAllMessages();
+                return true;
+            },
             override: {
             	/**
             	 * Called when a controller is instantiated and its View controls (if available) are already created.
@@ -391,6 +761,16 @@ sap.ui.define(
                         Regularizacao: ""
                     });
                     this.getView().setModel(oModel, "oModel");
+                    var oInputJustificativa = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaJustificativa");
+                    var oInputRegularizacao = sap.ui.getCore().byId("ui.s2p.mm.profrequisition.maintains1::sap.suite.ui.generic.template.ObjectPage.view.Details::C_PurchaseReqnHeader--customer.app.variant.4.idTextAreaRegularizacao");
+    
+                    if (oInputJustificativa) {
+                        oInputJustificativa.setEditable(true); // Desabilita edição
+                    }
+                    
+                    if (oInputRegularizacao) {
+                        oInputRegularizacao.setEditable(true); // Desabilita edição
+                    }
         
                     var oController = this; 
                     var oComponent = sap.ui.core.Component.getOwnerComponentFor(this.getView());
